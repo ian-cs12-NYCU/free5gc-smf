@@ -25,8 +25,14 @@ func (s *Server) getOAMRoutes() []Route {
 		{
 			Name:    "Get SMF Userplane Information",
 			Method:  http.MethodGet,
-			Pattern: "/user-plane-info/",
-			APIFunc: s.HTTPGetSMFUserPlaneInfo,
+			Pattern: "/user-plane-info-debug/",
+			APIFunc: s.HTTPGetSMFUserPlaneInfoDebug,
+		},
+		{
+			Name:    "Get User Usage Information",
+			Method:  http.MethodGet,
+			Pattern: "/user-usage-info/",
+			APIFunc: s.HTTPGetUserUsageInfo,
 		},
 	}
 }
@@ -37,6 +43,11 @@ func (s *Server) HTTPGetUEPDUSessionInfo(c *gin.Context) {
 	s.Processor().HandleOAMGetUEPDUSessionInfo(c, smContextRef)
 }
 
-func (s *Server) HTTPGetSMFUserPlaneInfo(c *gin.Context) {
-	s.Processor().HandleGetSMFUserPlaneInfo(c)
+func (s *Server) HTTPGetUserUsageInfo(c *gin.Context) {
+	s.Processor().HandleGetUserUsageInfo(c)
+}
+
+// for DEGUG usage
+func (s *Server) HTTPGetSMFUserPlaneInfoDebug(c *gin.Context) {
+	s.Processor().HandleGetSMFDebugInfo(c)
 }

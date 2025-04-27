@@ -340,6 +340,32 @@ func (dataPath *DataPath) String() string {
 	return str
 }
 
+// get DataPath Node string
+func (node *DataPathNode) String() string {
+	var str string
+	str += "DataPath Node Information\n"
+	str += "Current UPF IP: " + node.GetNodeIP() + "\n"
+	str += "Current UPF ID: " + node.UPF.GetUPFID() + "\n"
+	if node.Prev() != nil {
+		str += "Previous UPF IP: " + node.Prev().GetNodeIP() + "\n"
+		str += "Previous UPF ID: " + node.Prev().UPF.GetUPFID() + "\n"
+	} else {
+		str += "Previous UPF IP: None\n"
+	}
+	if node.Next() != nil {
+		str += "Next UPF IP: " + node.Next().GetNodeIP() + "\n"
+		str += "Next UPF ID: " + node.Next().UPF.GetUPFID() + "\n"
+	} else {
+		str += "Next UPF IP: None\n"
+	}
+	if node.IsBranchingPoint {
+		str += "This node is a Branching Point\n"
+	} else {
+		str += "This node is not a Branching Point\n"
+	}
+	return str
+}
+
 func getUrrIdKey(uuid string, urrId uint32) string {
 	return uuid + ":" + strconv.Itoa(int(urrId))
 }
@@ -428,6 +454,7 @@ func (dataPath *DataPath) ActivateTunnelAndPDR(smContext *SMContext, precedence 
 		dataPath.addUrrToPath(smContext)
 		logger.PduSessLog.Tracef("Create URR: UrrReportTime [%v],  UrrReportThreshold: [%v]",
 			smContext.UrrReportTime, smContext.UrrReportThreshold)
+		
 	} else {
 		logger.PduSessLog.Warn("No Create URR")
 	}

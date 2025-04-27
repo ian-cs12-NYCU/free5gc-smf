@@ -175,7 +175,7 @@ func buildMultiUnitUsageFromUsageReport(
 						TriggerCategory: models.TriggerCategory_DEFERRED_REPORT,
 					},
 				}
-			} else {
+			} else { // PDU session level charging
 				triggers = []models.ChfConvergedChargingTrigger{
 					{
 						TriggerType:     ur.ReportTpye,
@@ -230,7 +230,6 @@ func buildMultiUnitUsageFromUsageReport(
 	for _, unitUsage := range ratingGroupUnitUsagesMap {
 		multipleUnitUsage = append(multipleUnitUsage, unitUsage)
 	}
-
 	return multipleUnitUsage
 }
 

@@ -50,6 +50,7 @@ func (p *Processor) HandlePDUSessionSMContextCreate(
 
 	createData := request.JsonData
 	// Check duplicate SM Context
+	logger.PduSessLog.Errorf("createData: SUPI=%v, PDUsessionID=%v", createData.Supi, createData.PduSessionId)
 	if dup_smCtx := smf_context.GetSMContextById(createData.Supi, createData.PduSessionId); dup_smCtx != nil {
 		p.HandlePDUSessionSMContextLocalRelease(dup_smCtx, createData)
 	}

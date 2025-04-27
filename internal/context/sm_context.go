@@ -104,7 +104,26 @@ type UsageReport struct {
 	UplinkPktNum   uint64
 	DownlinkPktNum uint64
 
+	StartTime time.Time
+	EndTime   time.Time
+
 	ReportTpye models.ChfConvergedChargingTriggerType
+}
+
+func (u UsageReport) String() string {
+	return fmt.Sprintf(
+		"UsageReport: *******\nUrrId[%d]\nUpfId[%s]\nTotalVolume[%d]\nUplinkVolume[%d]\nDownlinkVolume[%d]\n"+
+			"TotalPktNum[%d]\nUplinkPktNum[%d]\nDownlinkPktNum[%d]\nReportTpye[%s]",
+		u.UrrId,
+		u.UpfId,
+		u.TotalVolume,
+		u.UplinkVolume,
+		u.DownlinkVolume,
+		u.TotalPktNum,
+		u.UplinkPktNum,
+		u.DownlinkPktNum,
+		u.ReportTpye,
+	)
 }
 
 var TeidGenerator *idgenerator.IDGenerator
@@ -358,6 +377,8 @@ func GetSMContextByRef(ref string) *SMContext {
 	return smCtx
 }
 
+// id: UE SUPI
+// pduSessID: PDUSessionID
 func GetSMContextById(id string, pduSessID int32) *SMContext {
 	var smCtx *SMContext
 	ref, err := ResolveRef(id, pduSessID)

@@ -196,6 +196,7 @@ func HandlePfcpSessionReportRequest(msg *pfcpUdp.Message) {
 		// After receiving the Usage Report, it should send charging request to the CHF
 		// and update the URR with the quota or other charging information according to
 		// the charging response
+		service.GetApp().Processor().StoreUserUsageInfo(SEID) // store usage report in processor for OAM usage
 		service.GetApp().Processor().ReportUsageAndUpdateQuota(smContext)
 	}
 

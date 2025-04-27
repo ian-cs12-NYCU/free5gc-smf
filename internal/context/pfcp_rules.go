@@ -1,6 +1,9 @@
 package context
 
 import (
+	"reflect"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/free5gc/pfcp/pfcpType"
@@ -50,6 +53,53 @@ type URR struct {
 	VolumeThreshold        uint64
 	VolumeQuota            uint64
 	State                  RuleState
+}
+
+// Get URR Info string
+func (urr *URR) String() string {
+	if urr == nil {
+		return "URR is nil"
+	}
+	str := "URR: *********\n"
+	str += "URRID: " + strconv.FormatUint(uint64(urr.URRID), 10) + " \n"
+	str += "MeasureMethod: " + urr.MeasureMethod + " \n"
+	str += "ReportingTrigger: " + reportingTriggersString(urr.ReportingTrigger) + " \n"
+	str += "MeasurementPeriod: " + urr.MeasurementPeriod.String() + " \n"
+	str += "QuotaValidityTime: " + urr.QuotaValidityTime.String() + " \n"
+	str += "MeasurementInformation: " + measureInformationString(urr.MeasurementInformation) + " \n"
+	str += "VolumeThreshold: " + strconv.FormatUint(urr.VolumeThreshold, 10) + " \n"
+	str += "VolumeQuota: " + strconv.FormatUint(urr.VolumeQuota, 10) + " \n"
+	str += "State: " + strconv.FormatUint(uint64(urr.State), 10) + " \n"
+
+	return str
+}
+
+func reportingTriggersString(r pfcpType.ReportingTriggers) string {
+	var trueFields []string
+	val := reflect.ValueOf(r)
+	typ := reflect.TypeOf(r)
+
+	for i := 0; i < val.NumField(); i++ {
+		if val.Field(i).Bool() {
+			trueFields = append(trueFields, typ.Field(i).Name)
+		}
+	}
+
+	return strings.Join(trueFields, ", ")
+}
+
+func measureInformationString(m pfcpType.MeasurementInformation) string {
+	var trueFields []string
+	val := reflect.ValueOf(m)
+	typ := reflect.TypeOf(m)
+
+	for i := 0; i < val.NumField(); i++ {
+		if val.Field(i).Bool() {
+			trueFields = append(trueFields, typ.Field(i).Name)
+		}
+	}
+
+	return strings.Join(trueFields, ", ")
 }
 
 type UrrOpt func(urr *URR)

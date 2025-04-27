@@ -40,18 +40,22 @@ func ActivateUPFSession(
 	pfcpPool := make(map[string]*PFCPState)
 
 	for _, dataPath := range smContext.Tunnel.DataPathPool {
+
 		if !dataPath.Activated {
 			continue
 		}
 		for node := dataPath.FirstDPNode; node != nil; node = node.Next() {
+			// logger.PduSessLog.Errorf("build initial PDR, FAR, QER, URR for node: %s", node.GetNodeIP())
 			pdrList := make([]*smf_context.PDR, 0, 2)
 			farList := make([]*smf_context.FAR, 0, 2)
 			qerList := make([]*smf_context.QER, 0, 2)
 			urrList := make([]*smf_context.URR, 0, 2)
 
 			if node.UpLinkTunnel != nil && node.UpLinkTunnel.PDR != nil {
+
 				pdrList = append(pdrList, node.UpLinkTunnel.PDR)
 				farList = append(farList, node.UpLinkTunnel.PDR.FAR)
+
 				if node.UpLinkTunnel.PDR.QER != nil {
 					qerList = append(qerList, node.UpLinkTunnel.PDR.QER...)
 				}
@@ -60,6 +64,7 @@ func ActivateUPFSession(
 				}
 			}
 			if node.DownLinkTunnel != nil && node.DownLinkTunnel.PDR != nil {
+
 				pdrList = append(pdrList, node.DownLinkTunnel.PDR)
 				farList = append(farList, node.DownLinkTunnel.PDR.FAR)
 				if node.DownLinkTunnel.PDR.URR != nil {

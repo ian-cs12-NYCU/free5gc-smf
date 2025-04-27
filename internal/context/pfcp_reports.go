@@ -17,7 +17,8 @@ func (smContext *SMContext) HandleReports(
 	upf := RetrieveUPFNodeByNodeID(nodeId)
 	upfId := upf.UUID()
 
-	for _, report := range usageReportRequest {
+
+	for idx , report := range usageReportRequest {
 		usageReport.UrrId = report.URRID.UrrIdValue
 		usageReport.UpfId = upfId
 		usageReport.TotalVolume = report.VolumeMeasurement.TotalVolume
@@ -27,11 +28,13 @@ func (smContext *SMContext) HandleReports(
 		usageReport.UplinkPktNum = report.VolumeMeasurement.UplinkPktNum
 		usageReport.DownlinkPktNum = report.VolumeMeasurement.DownlinkPktNum
 		usageReport.ReportTpye = identityTriggerType(report.UsageReportTrigger)
+		usageReport.StartTime = report.StartTime.StartTime
+		usageReport.EndTime = report.EndTime.EndTime
 
 		if reportTpye != "" {
 			usageReport.ReportTpye = reportTpye
 		}
-
+		logger.PduSessLog.Errorf("idx=%d, %s", idx, usageReport.String())
 		smContext.UrrReports = append(smContext.UrrReports, usageReport)
 	}
 	for _, report := range usageReportModification {
@@ -44,6 +47,8 @@ func (smContext *SMContext) HandleReports(
 		usageReport.UplinkPktNum = report.VolumeMeasurement.UplinkPktNum
 		usageReport.DownlinkPktNum = report.VolumeMeasurement.DownlinkPktNum
 		usageReport.ReportTpye = identityTriggerType(report.UsageReportTrigger)
+		usageReport.StartTime = report.StartTime.StartTime
+		usageReport.EndTime = report.EndTime.EndTime
 
 		if reportTpye != "" {
 			usageReport.ReportTpye = reportTpye
@@ -61,6 +66,9 @@ func (smContext *SMContext) HandleReports(
 		usageReport.UplinkPktNum = report.VolumeMeasurement.UplinkPktNum
 		usageReport.DownlinkPktNum = report.VolumeMeasurement.DownlinkPktNum
 		usageReport.ReportTpye = identityTriggerType(report.UsageReportTrigger)
+		usageReport.StartTime = report.StartTime.StartTime
+		usageReport.EndTime = report.EndTime.EndTime
+		
 
 		if reportTpye != "" {
 			usageReport.ReportTpye = reportTpye
