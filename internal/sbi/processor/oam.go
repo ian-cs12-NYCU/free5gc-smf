@@ -106,10 +106,3 @@ func (p *Processor) HandleGetSMFDebugInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, rsp)
 }
 
-func (p *Processor) HandleGetUserUsageInfo(c *gin.Context) {
-
-	c.JSON(http.StatusOK, p.UsageReports)
-
-	// clean up the reports
-	p.UsageReports = make(map[string]UsageReportPerUE, 0)
-}

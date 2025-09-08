@@ -35,10 +35,6 @@ func (s *Server) HTTPGetUEPDUSessionInfo(c *gin.Context) {
 	s.Processor().HandleOAMGetUEPDUSessionInfo(c)
 }
 
-func (s *Server) HTTPGetUserUsageInfo(c *gin.Context) {
-	s.Processor().HandleGetUserUsageInfo(c)
-}
-
 // for DEGUG usage
 func (s *Server) HTTPGetSMFUserPlaneInfoDebug(c *gin.Context) {
 	s.Processor().HandleGetSMFDebugInfo(c)

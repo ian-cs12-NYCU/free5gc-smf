@@ -137,21 +137,14 @@ func (c *SMContext) ApplyPccRules(
 			// If QoS Data is nil should remove QFI
 			c.RemoveQFI(id)
 		}
-		c.Log.Errorf("ApplyPccRules: SmPolicyDecision.QosDecs[%s]: QosID = %s", id, qos.QosId)
 	}
 
 	// Handle PccRules in decision first
-	for id, chgData := range decision.ChgDecs {
-		c.Log.Errorf("ApplyPccRules: ChgDatachgId:[%s].RatingGroup = %v ", id, chgData.RatingGroup)
-	}
-
-
 	for id, pccModel := range decision.PccRules {
 		c.Log.Warnf("ApplyPccRules: [id:%s]: %#v ", id, pccModel)
 		var srcTcData, tgtTcData *TrafficControlData
 		srcPcc := c.PCCRules[id]
 		if pccModel == nil {
-			c.Log.Infof("Remove PCCRule[%s]", id)
 			if srcPcc == nil {
 				c.Log.Warnf("PCCRule[%s] not exist", id)
 				continue

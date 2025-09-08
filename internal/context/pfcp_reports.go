@@ -18,7 +18,7 @@ func (smContext *SMContext) HandleReports(
 	upfId := upf.UUID()
 
 
-	for idx , report := range usageReportRequest {
+	for _ , report := range usageReportRequest {
 		usageReport.UrrId = report.URRID.UrrIdValue
 		usageReport.UpfId = upfId
 		usageReport.TotalVolume = report.VolumeMeasurement.TotalVolume
@@ -34,7 +34,6 @@ func (smContext *SMContext) HandleReports(
 		if reportTpye != "" {
 			usageReport.ReportTpye = reportTpye
 		}
-		logger.PduSessLog.Errorf("idx=%d, %s", idx, usageReport.String())
 		smContext.UrrReports = append(smContext.UrrReports, usageReport)
 	}
 	for _, report := range usageReportModification {
