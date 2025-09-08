@@ -377,6 +377,28 @@ func GetSMContextByRef(ref string) *SMContext {
 	return smCtx
 }
 
+// GetAllSMContexts returns all SM contexts in the pool
+func GetAllSMContexts() map[string]*SMContext {
+	contexts := make(map[string]*SMContext)
+	smContextPool.Range(func(key, value interface{}) bool {
+		ref := key.(string)
+		smCtx := value.(*SMContext)
+		contexts[ref] = smCtx
+		return true // continue iteration
+	})
+	return contexts
+}
+
+// GetSMContextCount returns the number of SM contexts in the pool
+func GetSMContextPoolSize() int {
+	count := 0
+	smContextPool.Range(func(key, value interface{}) bool {
+		count++
+		return true // continue iteration
+	})
+	return count
+}
+
 // id: UE SUPI
 // pduSessID: PDUSessionID
 func GetSMContextById(id string, pduSessID int32) *SMContext {

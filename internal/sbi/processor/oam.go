@@ -7,8 +7,8 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/free5gc/openapi/models"
-	"github.com/free5gc/smf/internal/logger"
 	smf_context "github.com/free5gc/smf/internal/context"
+	"github.com/free5gc/smf/internal/logger"
 )
 
 type PDUSessionInfo struct {
@@ -24,28 +24,47 @@ type PDUSessionInfo struct {
 	Tunnel       smf_context.UPTunnel
 }
 
-func (p *Processor) HandleOAMGetUEPDUSessionInfo(c *gin.Context, smContextRef string) {
-	smContext := smf_context.GetSMContextByRef(smContextRef)
-	if smContext == nil {
-		c.JSON(http.StatusNotFound, nil)
+func (p *Processor) HandleOAMGetUEPDUSessionInfo(c *gin.Context) {
+	// Get all SM contexts from the pool
+	allSMContexts := smf_context.GetAllSMContexts()
+
+	if len(allSMContexts) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"message": "No SM contexts found"})
 		return
 	}
 
-	pduSessionInfo := &PDUSessionInfo{
-		Supi:         smContext.Supi,
-		PDUSessionID: strconv.Itoa(int(smContext.PDUSessionID)),
-		Dnn:          smContext.Dnn,
-		Sst:          strconv.Itoa(int(smContext.SNssai.Sst)),
-		Sd:           smContext.SNssai.Sd,
-		AnType:       smContext.AnType,
-		PDUAddress:   smContext.PDUAddress.String(),
-		UpCnxState:   smContext.UpCnxState,
-		// Tunnel: context.UPTunnel{
-		// 	//UpfRoot:  smContext.Tunnel.UpfRoot,
-		// 	ULCLRoot: smContext.Tunnel.UpfRoot,
-		// },
+	// Convert all SM contexts to PDU session info
+	allPduSessionInfos := make(map[string]*PDUSessionInfo)
+
+	for ref, smContext := range allSMContexts {
+		pduSessionInfo := &PDUSessionInfo{
+			Supi:         smContext.Supi,
+			PDUSessionID: strconv.Itoa(int(smContext.PDUSessionID)),
+			Dnn:          smContext.Dnn,
+			Sst:          strconv.Itoa(int(smContext.SNssai.Sst)),
+			Sd:           smContext.SNssai.Sd,
+			AnType:       smContext.AnType,
+			UpCnxState:   smContext.UpCnxState,
+		}
+
+		// Handle PDUAddress safely (check if it's nil)
+		if smContext.PDUAddress != nil {
+			pduSessionInfo.PDUAddress = smContext.PDUAddress.String()
+		} else {
+			pduSessionInfo.PDUAddress = ""
+		}
+
+		allPduSessionInfos[ref] = pduSessionInfo
 	}
-	c.JSON(http.StatusOK, pduSessionInfo)
+
+	// Return response with pool size and all contexts
+	response := gin.H{
+		"poolSize":      smf_context.GetSMContextPoolSize(),
+		"smContexts":    allPduSessionInfos,
+		"totalContexts": len(allSMContexts),
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func (p *Processor) HandleGetSMFDebugInfo(c *gin.Context) {
@@ -53,8 +72,8 @@ func (p *Processor) HandleGetSMFDebugInfo(c *gin.Context) {
 	PduSessionId := int32(1)
 
 	type debugInfo struct {
-		PCCRulesMap     map[string]smf_context.PCCRule 	`json:"pccRulesMap,omitempty"`
-		ChargingDataMap map[string]models.ChargingData 	`json:"chargingDataMap,omitempty"`
+		PCCRulesMap     map[string]smf_context.PCCRule `json:"pccRulesMap,omitempty"`
+		ChargingDataMap map[string]models.ChargingData `json:"chargingDataMap,omitempty"`
 	}
 
 	ue1SmCtx := smf_context.GetSMContextById(ue1Supi, PduSessionId)

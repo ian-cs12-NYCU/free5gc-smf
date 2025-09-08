@@ -19,7 +19,7 @@ func (s *Server) getOAMRoutes() []Route {
 		{
 			Name:    "Get UE PDU Session Info",
 			Method:  http.MethodGet,
-			Pattern: "/ue-pdu-session-info/:smContextRef",
+			Pattern: "/ue-pdu-session-info/",
 			APIFunc: s.HTTPGetUEPDUSessionInfo,
 		},
 		{
@@ -28,19 +28,11 @@ func (s *Server) getOAMRoutes() []Route {
 			Pattern: "/user-plane-info-debug/",
 			APIFunc: s.HTTPGetSMFUserPlaneInfoDebug,
 		},
-		{
-			Name:    "Get User Usage Information",
-			Method:  http.MethodGet,
-			Pattern: "/user-usage-info/",
-			APIFunc: s.HTTPGetUserUsageInfo,
-		},
 	}
 }
 
 func (s *Server) HTTPGetUEPDUSessionInfo(c *gin.Context) {
-	smContextRef := c.Params.ByName("smContextRef")
-
-	s.Processor().HandleOAMGetUEPDUSessionInfo(c, smContextRef)
+	s.Processor().HandleOAMGetUEPDUSessionInfo(c)
 }
 
 func (s *Server) HTTPGetUserUsageInfo(c *gin.Context) {
