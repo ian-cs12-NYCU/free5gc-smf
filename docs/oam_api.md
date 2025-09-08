@@ -29,7 +29,7 @@ Check if the SMF service is available.
 
 **GET /nsmf-oam/v1/ue-pdu-session-info/**
 
-Retrieve detailed information about all UE PDU sessions currently managed by the SMF.
+Retrieve detailed information about all UE PDU sessions currently managed by the SMF, including QoS flow information.
 
 #### Parameters
 None required.
@@ -38,30 +38,33 @@ None required.
 - **200 OK**: All PDU Session information retrieved successfully
   ```json
   {
-    "poolSize": 3,
-    "totalContexts": 3,
+    "poolSize": 1,
     "smContexts": {
-      "urn:uuid:12345678-1234-1234-1234-123456789abc": {
-        "Supi": "imsi-208930000000001",
-        "PDUSessionID": "1",
-        "Dnn": "internet",
-        "Sst": "1",
-        "Sd": "010203",
-        "AnType": "3GPP_ACCESS",
-        "PDUAddress": "10.60.0.1",
-        "UpCnxState": "ACTIVATED"
-      },
-      "urn:uuid:87654321-4321-4321-4321-cba987654321": {
-        "Supi": "imsi-208930000000002",
-        "PDUSessionID": "1",
-        "Dnn": "ims",
-        "Sst": "2",
-        "Sd": "020304",
-        "AnType": "3GPP_ACCESS",
-        "PDUAddress": "10.60.0.2",
-        "UpCnxState": "ACTIVATED"
+      "urn:uuid:ed4ff6a5-1c94-47b2-94b3-6ffffea7a4a3": {
+        "supi": "imsi-208930000000001",
+        "pduSessionId": "1",
+        "pduAddress": "10.60.0.1",
+        "qosFlows": {
+          "1": {
+            "5qi": 9,
+            "state": "Default",
+            "isGbrFlow": false,
+            "maxbrUl": "1000 Mbps",
+            "maxbrDl": "1000 Mbps",
+            "sdfFilter": "1.1.1.1/32"
+          },
+          "2": {
+            "5qi": 8,
+            "state": "Set",
+            "isGbrFlow": false,
+            "maxbrUl": "208 Mbps",
+            "maxbrDl": "208 Mbps",
+            "sdfFilter": "1.1.1.1/32"
+          }
+        }
       }
-    }
+    },
+    "totalContexts": 1
   }
   ```
 - **404 Not Found**: No SM contexts found
@@ -72,27 +75,42 @@ None required.
   ```
 
 #### Response Fields Description
-- **poolSize**: Total number of SM contexts in the pool (from sync.Map.Range count)
+- **poolSize**: Total number of SM contexts in the pool
 - **totalContexts**: Number of contexts returned in this response
 - **smContexts**: Map of SM context references to PDU session information
   - **Key**: SM Context Reference (UUID format)
   - **Value**: PDU Session Information object
 
 #### PDU Session Information Fields
-- **Supi**: Subscription Permanent Identifier
-- **PDUSessionID**: PDU Session Identifier (as string)
-- **Dnn**: Data Network Name
-- **Sst**: Slice/Service Type (as string)
-- **Sd**: Slice Differentiator
-- **AnType**: Access Network Type (3GPP_ACCESS, NON_3GPP_ACCESS)
-- **PDUAddress**: Assigned UE IP address (empty string if not allocated)
-- **UpCnxState**: User Plane Connection State (ACTIVATED, DEACTIVATED, etc.)
+- **supi**: Subscription Permanent Identifier
+- **pduSessionId**: PDU Session Identifier (as string)
+- **pduAddress**: Assigned UE IP address (empty string if not allocated)
+- **qosFlows**: Map of QoS Flow Identifier to QoS Flow Information
+  - **Key**: QFI (QoS Flow Identifier) as string
+  - **Value**: QoS Flow Information object
+
+#### QoS Flow Information Fields
+- **5qi**: 5G QoS Identifier (integer)
+- **state**: QoS Flow state ("Default", "Set", "Unset", "ToBeModify", "Unknown")
+- **isGbrFlow**: Boolean indicating if this is a Guaranteed Bit Rate flow
+- **maxbrUl**: Maximum Bit Rate Uplink (optional, e.g., "208 Mbps")
+- **maxbrDl**: Maximum Bit Rate Downlink (optional, e.g., "208 Mbps")
+- **gbrUl**: Guaranteed Bit Rate Uplink (optional, only for GBR flows, e.g., "108 Mbps")
+- **gbrDl**: Guaranteed Bit Rate Downlink (optional, only for GBR flows, e.g., "108 Mbps")
+- **sdfFilter**: Service Data Flow filter (converted format, e.g., "1.1.1.1/32" or "any")
+
+#### SDF Filter Format
+The SDF filter field is automatically converted from the internal PFCP format:
+- `permit out ip from 1.1.1.1/32 to assigned` → `1.1.1.1/32`
+- `permit out ip from any to assigned` → `any`
+- Other formats are returned as-is
 
 #### Notes
-- This endpoint returns all active SM contexts in the SMF's context pool
+- This endpoint returns all active SM contexts with their associated QoS flows
+- QoS flows include both additional flows and default flows from DNN configuration
+- SDF filters are extracted from PDR (Packet Detection Rules) in the data path
+- GBR fields are only present for Guaranteed Bit Rate flows
 - If no active sessions exist, a 404 response with a message is returned
-- The PDUAddress field will be an empty string if the IP address is not yet allocated
-- The endpoint uses the `GetAllSMContexts()` and `GetSMContextPoolSize()` helper functions
 
 ---
 
@@ -175,23 +193,36 @@ curl -X GET http://127.0.0.2:8000/nsmf-oam/v1/ue-pdu-session-info/
 
 #### Example Response
 ```bash
-# When there are active sessions
+# When there are active sessions with QoS flows
 curl -X GET http://127.0.0.2:8000/nsmf-oam/v1/ue-pdu-session-info/ | jq
 {
-  "poolSize": 2,
-  "totalContexts": 2,
+  "poolSize": 1,
   "smContexts": {
-    "urn:uuid:12345678-1234-1234-1234-123456789abc": {
-      "Supi": "imsi-208930000000001",
-      "PDUSessionID": "1",
-      "Dnn": "internet",
-      "Sst": "1",
-      "Sd": "010203",
-      "AnType": "3GPP_ACCESS",
-      "PDUAddress": "10.60.0.1",
-      "UpCnxState": "ACTIVATED"
+    "urn:uuid:ed4ff6a5-1c94-47b2-94b3-6ffffea7a4a3": {
+      "supi": "imsi-208930000000001",
+      "pduSessionId": "1",
+      "pduAddress": "10.60.0.1",
+      "qosFlows": {
+        "1": {
+          "5qi": 9,
+          "state": "Default",
+          "isGbrFlow": false,
+          "maxbrUl": "1000 Mbps",
+          "maxbrDl": "1000 Mbps",
+          "sdfFilter": "1.1.1.1/32"
+        },
+        "2": {
+          "5qi": 8,
+          "state": "Set",
+          "isGbrFlow": false,
+          "maxbrUl": "208 Mbps",
+          "maxbrDl": "208 Mbps",
+          "sdfFilter": "1.1.1.1/32"
+        }
+      }
     }
-  }
+  },
+  "totalContexts": 1
 }
 
 # When there are no active sessions
@@ -245,6 +276,9 @@ SMF OAM API 使用固定的 prefix: `/nsmf-oam/v1`
 
 1. The OAM API is intended for operational monitoring and troubleshooting purposes.
 2. The debug endpoint (`/user-plane-info-debug/`) should only be used in development/testing environments.
-3. Usage reports are collected and cleared after each retrieval to prevent memory accumulation.
-4. All timestamps are in RFC3339 format (ISO 8601).
-5. Volume measurements are in bytes, packet counts are in number of packets.
+3. The `/ue-pdu-session-info/` endpoint provides comprehensive QoS flow information extracted from SMF context and PFCP data paths.
+4. SDF filters are automatically converted from PFCP format to a simplified format for better readability.
+5. QoS flow information includes both additional flows (from `AdditonalQosFlows`) and default flows (from DNN configuration).
+6. Bit rate values are formatted as human-readable strings (e.g., "208 Mbps").
+7. GBR (Guaranteed Bit Rate) fields are only included for flows where `isGbrFlow` is true.
+8. All QFI (QoS Flow Identifier) keys in the `qosFlows` map are strings for JSON compatibility.
