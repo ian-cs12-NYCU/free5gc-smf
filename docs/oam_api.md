@@ -14,17 +14,22 @@ For the SMF running at 127.0.0.2:8000, the base URL is: `http://127.0.0.2:8000/n
 **GET /nsmf-oam/v1/** 
 
 Check if the SMF service is available.
+```bash
+curl -X GET http://127.0.0.2:8000/nsmf-oam/v1/
+curl -X GET http://127.0.0.2:8000/nsmf-oam/v1/ue-pdu-session-info/
+curl -X GET http://127.0.0.2:8000/nsmf-oam/v1/user-plane-info-debug/
+```
 
-#### Response
-- **200 OK**: Service is available
-  ```json
-  {
-    "status": "Service Available"
-  }
+If OAuth2 is enabled on your deployment, you must provide a valid Bearer token in the Authorization header (see below for how to obtain a test token from the local NRF):
+
+```bash
+curl -H "Authorization: Bearer <ACCESS_TOKEN>" -X GET http://127.0.0.2:8000/nsmf-oam/v1/
+```
   ```
 
 ---
 
+If OAuth2 is enabled you must include a valid Authorization header as shown above.
 ### 2. Get All UE PDU Session Information
 
 **GET /nsmf-oam/v1/ue-pdu-session-info/**
@@ -40,10 +45,19 @@ None required.
   {
     "poolSize": 1,
     "smContexts": {
-      "urn:uuid:ed4ff6a5-1c94-47b2-94b3-6ffffea7a4a3": {
-        "supi": "imsi-208930000000001",
-        "pduSessionId": "1",
         "pduAddress": "10.60.0.1",
+3. 在實驗環境暫時關閉 OAuth2（方便測試）
+
+如果你希望在本地 / 測試環境中關閉 OAuth2，以便直接用 curl 呼叫 OAM API（不需 Authorization header），請在 NRF 的設定檔 `config/nrfcfg.yaml` 中把 OAuth 關閉，然後重新啟動 NRF 與 SMF：
+
+```yaml
+configuration:
+  sbi:
+    # ...（其他欄位）
+    oauth: false
+```
+
+在此環境中，`config/nrfcfg.yaml` 的 `configuration.sbi.oauth` 預設即可設為 `false`。關掉 OAuth2 後，OAM 路由在未帶 Authorization header 的情況下會回傳正常的 HTTP 200/404（依資源有無）響應；若要在程式層面（短暫）繞過，可在 `NFs/smf/internal/sbi/server.go` 內移除或條件化 `RouterAuthorizationCheck` middleware（不建議在生產環境這麼做）。
         "qosFlows": {
           "1": {
             "5qi": 9,
